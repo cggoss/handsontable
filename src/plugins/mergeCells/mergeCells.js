@@ -533,6 +533,11 @@ var afterViewportRowCalculatorOverride = function(calc) {
 var afterViewportColumnCalculatorOverride = function(calc) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
+    var cols = this.countCols() - 1;
+    if (calc.startColumn === 0 && calc.endColumn === cols) {
+      return;
+    }
+
     var rowCount = this.countRows();
     var mergeParent;
     for (var r = 0; r < rowCount; r++) {
