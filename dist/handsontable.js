@@ -3904,7 +3904,7 @@ var WalkontableViewport = function WalkontableViewport(wotInstance) {
       height = document.documentElement.clientHeight;
     } else {
       elemHeight = outerHeight(trimmingContainer);
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : 0;
     }
     return height;
   },
@@ -4210,7 +4210,7 @@ var domHelpers = ($__helpers_47_dom_47_element__ = require("helpers/dom/element"
 var domEventHelpers = ($__helpers_47_dom_47_event__ = require("helpers/dom/event"), $__helpers_47_dom_47_event__ && $__helpers_47_dom_47_event__.__esModule && $__helpers_47_dom_47_event__ || {default: $__helpers_47_dom_47_event__});
 var HELPERS = [arrayHelpers, browserHelpers, dataHelpers, featureHelpers, functionHelpers, mixedHelpers, numberHelpers, objectHelpers, settingHelpers, stringHelpers, unicodeHelpers];
 var DOM = [domHelpers, domEventHelpers];
-Handsontable.buildDate = 'Wed Mar 16 2016 12:23:01 GMT+0100 (CET)';
+Handsontable.buildDate = 'Mon Mar 04 2019 14:47:12 GMT+0100 (Central European Standard Time)';
 Handsontable.packageName = 'handsontable';
 Handsontable.version = '0.24.1';
 var baseVersion = '@@baseVersion';
@@ -8886,6 +8886,18 @@ var EventManager = function EventManager() {
     var $__3 = this;
     var context = this.context;
     function callbackProxy(event) {
+      var hasParentHandsontable = false;
+      var parentElement = event.target;
+      while (parentElement) {
+        if ($(parentElement).hasClass('handsontable')) {
+          hasParentHandsontable = true;
+          break;
+        }
+        parentElement = parentElement.parentElement;
+      }
+      if (event.type === 'mousemove' && !hasParentHandsontable) {
+        return;
+      }
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
           event.definePoperty('target', {value: event.srcElement});
@@ -12355,6 +12367,7 @@ var $ColumnSorting = ColumnSorting;
     var loadedSortingState = this.loadSortingState();
     var sortingColumn;
     var sortingOrder;
+    this.sortFunction = sortingSettings.sortFunction;
     if (typeof loadedSortingState === 'undefined') {
       sortingColumn = sortingSettings.column;
       sortingOrder = sortingSettings.sortOrder;
@@ -12372,23 +12385,23 @@ var $ColumnSorting = ColumnSorting;
       this.hot.sortColumn = void 0;
       this.hot.sortOrder = void 0;
       return;
-    } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
+    } else if (this.hot.sortColumn === col && order === null) {
       if (this.hot.sortOrder === false) {
         this.hot.sortOrder = void 0;
       } else {
         this.hot.sortOrder = !this.hot.sortOrder;
       }
-    } else {
-      this.hot.sortOrder = typeof order === 'undefined' ? true : order;
+    } else if (order !== null) {
+      this.hot.sortOrder = order;
     }
     this.hot.sortColumn = col;
   },
-  sortByColumn: function(col, order) {
+  sortByColumn: function(col, order, optionalCtrlKey, fromClick) {
     this.setSortingColumn(col, order);
     if (typeof this.hot.sortColumn == 'undefined') {
       return;
     }
-    var allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
+    var allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder, optionalCtrlKey, fromClick);
     if (allowSorting !== false) {
       this.sort();
     }
@@ -12439,7 +12452,7 @@ var $ColumnSorting = ColumnSorting;
           $__5.hot.sortOrder = true;
         }
         $__5.lastSortedColumn = col;
-        $__5.sortByColumn(col);
+        $__5.sortByColumn(col, null, e.ctrlKey, true);
       }
     }));
     function countRowHeaders() {
@@ -12536,10 +12549,6 @@ var $ColumnSorting = ColumnSorting;
     };
   },
   sort: function() {
-    if (typeof this.hot.sortOrder == 'undefined') {
-      this.hot.sortIndex.length = 0;
-      return;
-    }
     var colMeta,
         sortFunction;
     this.hot.sortingEnabled = false;
@@ -12548,19 +12557,23 @@ var $ColumnSorting = ColumnSorting;
         ilen = this.hot.countRows() - this.hot.getSettings().minSpareRows; i < ilen; i++) {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
-    colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
-    if (colMeta.sortFunction) {
-      sortFunction = colMeta.sortFunction;
+    if (this.sortFunction) {
+      sortFunction = this.sortFunction;
     } else {
-      switch (colMeta.type) {
-        case 'date':
-          sortFunction = this.dateSort;
-          break;
-        case 'numeric':
-          sortFunction = this.numericSort;
-          break;
-        default:
-          sortFunction = this.defaultSort;
+      colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+      if (colMeta.sortFunction) {
+        sortFunction = colMeta.sortFunction;
+      } else {
+        switch (colMeta.type) {
+          case 'date':
+            sortFunction = this.dateSort;
+            break;
+          case 'numeric':
+            sortFunction = this.numericSort;
+            break;
+          default:
+            sortFunction = this.defaultSort;
+        }
       }
     }
     this.hot.sortIndex.sort(sortFunction(this.hot.sortOrder));
@@ -12577,7 +12590,7 @@ var $ColumnSorting = ColumnSorting;
     this.sortIndicators[this.hot.sortColumn] = colMeta.sortIndicator;
   },
   translateRow: function(row) {
-    if (this.hot.sortingEnabled && (typeof this.hot.sortOrder !== 'undefined') && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
+    if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
       return this.hot.sortIndex[row][0];
     }
     return row;
@@ -17233,6 +17246,10 @@ var afterViewportRowCalculatorOverride = function(calc) {
 var afterViewportColumnCalculatorOverride = function(calc) {
   var mergeCellsSetting = this.getSettings().mergeCells;
   if (mergeCellsSetting) {
+    var cols = this.countCols() - 1;
+    if (calc.startColumn === 0 && calc.endColumn === cols) {
+      return;
+    }
     var rowCount = this.countRows();
     var mergeParent;
     for (var r = 0; r < rowCount; r++) {
@@ -18517,7 +18534,7 @@ function onBeforeKeyDown(event) {
 }
 function onAfterChange(changes, source) {
   var instance = this;
-  if (source == 'loadData') {
+  if (source == 'loadData' && instance.undoRedo) {
     return instance.undoRedo.clear();
   }
 }
@@ -20811,7 +20828,7 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
   } else if (event.ctrlKey && navigator.userAgent.indexOf('Mac') === -1) {
     isCtrlDown = true;
   }
-  if (isCtrlDown) {
+  if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
     if (document.activeElement !== this.elTextarea && (this.getSelectionText() !== '' || isActiveElementEditable())) {
       return;
     }
@@ -20821,8 +20838,6 @@ CopyPasteClass.prototype.onKeyDown = function(event) {
         _this.selectNodeText(_this.elTextarea);
       }
     }, 0);
-  }
-  if (isCtrlDown && (event.keyCode === 67 || event.keyCode === 86 || event.keyCode === 88)) {
     if (event.keyCode === 88) {
       setTimeout(function() {
         _this.triggerCut(event);
