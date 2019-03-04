@@ -4,6 +4,8 @@
 _SpecRunner.html
 cars.sqlite
 dev.html
-
+dist
 !dist/README.md
 node_modules/
+handsontable.iml
+package-lock.json
