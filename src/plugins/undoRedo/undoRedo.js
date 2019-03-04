@@ -459,7 +459,7 @@ function onBeforeKeyDown(event) {
 
 function onAfterChange(changes, source) {
   var instance = this;
-  if (source == 'loadData') {
+  if (source == 'loadData' && instance.undoRedo) {
     return instance.undoRedo.clear();
   }
 }
