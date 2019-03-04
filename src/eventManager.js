@@ -41,6 +41,20 @@ class EventManager {
     const context = this.context;
 
     function callbackProxy(event) {
+      var hasParentHandsontable = false;
+      var parentElement = event.target;
+      while (parentElement) {
+        if ($(parentElement).hasClass('handsontable')) {
+          hasParentHandsontable = true;
+          break;
+        }
+        parentElement = parentElement.parentElement;
+      }
+
+      if (event.type === 'mousemove' && !hasParentHandsontable) {
+        return;
+      }
+
       callback.call(this, extendEvent(context, event));
     }
 
