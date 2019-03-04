@@ -51,7 +51,7 @@ class Viewport {
     } else {
       elemHeight = outerHeight(trimmingContainer);
       // returns height without DIV scrollbar
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : 0;
     }
 
     return height;
