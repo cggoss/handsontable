@@ -43,7 +43,7 @@ class EventManager {
         parentElement = parentElement.parentElement;
       }
 
-      if (!hasParentHandsontable) {
+      if (event.type === 'mousemove' && !hasParentHandsontable) {
         return;
       }
 
