@@ -634,6 +634,10 @@ function onBeforeKeyDown(event) {
   const ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   if (ctrlDown) {
+    if (!instance.undoRedo) {
+      return;
+    }
+
     if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { // CTRL + Y or CTRL + SHIFT + Z
       instance.undoRedo.redo();
       stopImmediatePropagation(event);
@@ -646,7 +650,7 @@ function onBeforeKeyDown(event) {
 
 function onAfterChange(changes, source) {
   const instance = this;
-  if (source === 'loadData') {
+  if (source === 'loadData' && instance.undoRedo) {
     return instance.undoRedo.clear();
   }
 }
