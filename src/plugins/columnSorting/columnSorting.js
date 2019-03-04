@@ -125,6 +125,8 @@ class ColumnSorting extends BasePlugin {
     let sortingColumn;
     let sortingOrder;
 
+    this.sortFunction = sortingSettings.sortFunction;
+
     if (typeof loadedSortingState === 'undefined') {
       sortingColumn = sortingSettings.column;
       sortingOrder = sortingSettings.sortOrder;
@@ -150,29 +152,26 @@ class ColumnSorting extends BasePlugin {
       this.hot.sortOrder = void 0;
 
       return;
-    } else if (this.hot.sortColumn === col && typeof order == 'undefined') {
+    } else if (this.hot.sortColumn === col && order === null) {
       if (this.hot.sortOrder === false) {
         this.hot.sortOrder = void 0;
       } else {
         this.hot.sortOrder = !this.hot.sortOrder;
       }
-
-    } else {
-      this.hot.sortOrder = typeof order === 'undefined' ? true : order;
+    } else if (order !== null) {
+      this.hot.sortOrder = order;
     }
 
     this.hot.sortColumn = col;
   }
 
-  sortByColumn(col, order) {
+  sortByColumn(col, order, optionalCtrlKey, fromClick) {
     this.setSortingColumn(col, order);
 
     if (typeof this.hot.sortColumn == 'undefined') {
       return;
     }
-
-    let allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder);
-
+    var allowSorting = Handsontable.hooks.run(this.hot, 'beforeColumnSort', this.hot.sortColumn, this.hot.sortOrder, optionalCtrlKey, fromClick);
     if (allowSorting !== false) {
       this.sort();
     }
@@ -253,7 +252,7 @@ class ColumnSorting extends BasePlugin {
         }
         this.lastSortedColumn = col;
 
-        this.sortByColumn(col);
+        this.sortByColumn(col, null, e.ctrlKey, true);
       }
     });
 
@@ -394,11 +393,10 @@ class ColumnSorting extends BasePlugin {
    * Perform the sorting.
    */
   sort() {
-    if (typeof this.hot.sortOrder == 'undefined') {
-      this.hot.sortIndex.length = 0;
-
-      return;
-    }
+    // if (typeof this.hot.sortOrder == 'undefined') {
+    //   this.hot.sortIndex.length = 0;
+    //   return;
+    // }
 
     let colMeta,
         sortFunction;
@@ -410,21 +408,25 @@ class ColumnSorting extends BasePlugin {
       this.hot.sortIndex.push([i, this.hot.getDataAtCell(i, this.hot.sortColumn)]);
     }
 
-    colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
-
-    if (colMeta.sortFunction) {
-      sortFunction = colMeta.sortFunction;
-
+    if (this.sortFunction) {
+      sortFunction = this.sortFunction;
     } else {
-      switch (colMeta.type) {
-        case 'date':
-          sortFunction = this.dateSort;
-          break;
-        case 'numeric':
-          sortFunction = this.numericSort;
-          break;
-        default:
-          sortFunction = this.defaultSort;
+      colMeta = this.hot.getCellMeta(0, this.hot.sortColumn);
+
+      if (colMeta.sortFunction) {
+        sortFunction = colMeta.sortFunction;
+
+      } else {
+        switch (colMeta.type) {
+          case 'date':
+            sortFunction = this.dateSort;
+            break;
+          case 'numeric':
+            sortFunction = this.numericSort;
+            break;
+          default:
+            sortFunction = this.defaultSort;
+        }
       }
     }
 
@@ -457,7 +459,7 @@ class ColumnSorting extends BasePlugin {
    * @returns {Number} Sorted row index.
    */
   translateRow(row) {
-    if (this.hot.sortingEnabled && (typeof this.hot.sortOrder !== 'undefined') && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
+    if (this.hot.sortingEnabled && this.hot.sortIndex && this.hot.sortIndex.length && this.hot.sortIndex[row]) {
       return this.hot.sortIndex[row][0];
     }
 
