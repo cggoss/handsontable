@@ -33,6 +33,20 @@ class EventManager {
     let context = this.context;
 
     function callbackProxy(event) {
+      var hasParentHandsontable = false;
+      var parentElement = event.target;
+      while (parentElement) {
+        if ($(parentElement).hasClass('handsontable')) {
+          hasParentHandsontable = true;
+          break;
+        }
+        parentElement = parentElement.parentElement;
+      }
+
+      if (!hasParentHandsontable) {
+        return;
+      }
+
       if (event.target == void 0 && event.srcElement != void 0) {
         if (event.definePoperty) {
           event.definePoperty('target', {
