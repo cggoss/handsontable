@@ -781,6 +781,11 @@ class MergeCells extends BasePlugin {
     const rowCount = this.hot.countRows();
     let mergeParent;
 
+    const cols = this.hot.countCols() - 1;
+    if (calc.startColumn === 0 && calc.endColumn === cols) {
+      return;
+    }
+
     rangeEach(0, rowCount - 1, (r) => {
       mergeParent = this.mergedCellsCollection.get(r, calc.startColumn);
 
