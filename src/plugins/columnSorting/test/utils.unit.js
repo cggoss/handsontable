@@ -3,7 +3,7 @@ import { areValidSortStates, ASC_SORT_STATE, DESC_SORT_STATE } from 'handsontabl
 describe('ColumnSorting', () => {
   it('areValidSortStates', () => {
     expect(areValidSortStates([{}])).toBeFalsy();
-    expect(areValidSortStates([{ column: 1 }])).toBeFalsy();
+    expect(areValidSortStates([{ column: 1 }])).toBeTruthy();
     expect(areValidSortStates([{ sortOrder: ASC_SORT_STATE }])).toBeFalsy();
     expect(areValidSortStates([{ sortOrder: DESC_SORT_STATE }])).toBeFalsy();
     expect(areValidSortStates([{ column: 1, sortOrder: DESC_SORT_STATE }, {

@@ -23,7 +23,7 @@ export function rootComparator(sortingOrders, columnMetas) {
       const nextValue = nextValues[column];
       const pluginSettings = columnMeta.columnSorting;
       const compareFunctionFactory = pluginSettings.compareFunctionFactory ? pluginSettings.compareFunctionFactory : getCompareFunctionFactory(columnMeta.type);
-      const compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue);
+      const compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue, rowIndexWithValues[0], nextRowIndexWithValues[0]);
 
       // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.
 

@@ -36,7 +36,12 @@ export function areValidSortStates(sortStates) {
   const sortedColumns = sortStates.map(({ column }) => column);
   const indexOccursOnlyOnce = new Set(sortedColumns).size === sortedColumns.length;
 
-  return indexOccursOnlyOnce && sortStates.every(isValidColumnState);
+  return indexOccursOnlyOnce && sortStates.every((sortState) => {
+    if (sortState === undefined) {
+      return false;
+    }
+    return sortState.sortOrder === undefined || isValidColumnState(sortState);
+  });
 }
 
 /**

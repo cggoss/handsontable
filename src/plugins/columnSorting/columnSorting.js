@@ -209,14 +209,14 @@ class ColumnSorting extends BasePlugin {
    * @fires Hooks#beforeColumnSort
    * @fires Hooks#afterColumnSort
    */
-  sort(sortConfig) {
+  sort(sortConfig, ctrlKey) {
     const currentSortConfig = this.getSortConfig();
 
     // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
-    const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
+    const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible, ctrlKey);
 
     if (allowSort === false) {
       return;
@@ -242,7 +242,7 @@ class ColumnSorting extends BasePlugin {
    * Clear the sort performed on the table.
    */
   clearSort() {
-    this.sort([]);
+    this.sort([], false);
   }
 
   /**
@@ -631,7 +631,7 @@ class ColumnSorting extends BasePlugin {
       const initialConfig = allSortSettings.initialConfig;
 
       if (Array.isArray(initialConfig) || isObject(initialConfig)) {
-        this.sort(initialConfig);
+        this.sort(initialConfig, false);
       }
 
     } else {
@@ -855,7 +855,15 @@ class ColumnSorting extends BasePlugin {
         this.hot.selectColumns(coords.col);
       }
 
-      this.sort(this.getColumnNextConfig(coords.col));
+      let columnNextConfig = this.getColumnNextConfig(coords.col);
+      if (!columnNextConfig) {
+        columnNextConfig = {
+          column: coords.col,
+          sortOrder: undefined
+        };
+      }
+
+      this.sort(columnNextConfig, event.ctrlKey);
     }
   }
 
