@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.2.2
- * Release date: 19/12/2018 (built at 18/12/2018 14:40:17)
+ * Version: 6.2.2-snapshot.8
+ * Release date: 19/12/2018 (built at 18/08/2020 17:24:59)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2245,6 +2245,22 @@ function () {
       var context = this.context;
 
       function callbackProxy(event) {
+        var hasParentHandsontable = false;
+        var parentElement = event.target;
+
+        while (parentElement) {
+          if ($(parentElement).hasClass('handsontable')) {
+            hasParentHandsontable = true;
+            break;
+          }
+
+          parentElement = parentElement.parentElement;
+        }
+
+        if (event.type === 'mousemove' && !hasParentHandsontable) {
+          return;
+        }
+
         callback.call(this, extendEvent(context, event));
       }
 
@@ -22885,7 +22901,7 @@ function () {
       } else {
         elemHeight = (0, _element.outerHeight)(trimmingContainer); // returns height without DIV scrollbar
 
-        height = elemHeight > 0 && trimmingContainer.clientHeight > 0 ? trimmingContainer.clientHeight : Infinity;
+        height = elemHeight > 0 && trimmingContainer.clientHeight > 0 ? trimmingContainer.clientHeight : 0;
       }
 
       return height;
@@ -29049,7 +29065,13 @@ function areValidSortStates(sortStates) {
     return column;
   });
   var indexOccursOnlyOnce = new Set(sortedColumns).size === sortedColumns.length;
-  return indexOccursOnlyOnce && sortStates.every(isValidColumnState);
+  return indexOccursOnlyOnce && sortStates.every(function (sortState) {
+    if (sortState === undefined) {
+      return false;
+    }
+
+    return sortState.sortOrder === undefined || isValidColumnState(sortState);
+  });
 }
 /**
  * Get next sort order for particular column. The order sequence looks as follows: 'asc' -> 'desc' -> undefined -> 'asc'
@@ -29734,9 +29756,9 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "18/12/2018 14:40:17";
-Handsontable.packageName = "handsontable";
-Handsontable.version = "6.2.2";
+Handsontable.buildDate = "18/08/2020 17:24:59";
+Handsontable.packageName = "@cggoss/handsontable";
+Handsontable.version = "6.2.2-snapshot.8";
 var baseVersion = "";
 
 if (baseVersion) {
@@ -45638,14 +45660,14 @@ function (_BasePlugin) {
 
   }, {
     key: "sort",
-    value: function sort(sortConfig) {
+    value: function sort(sortConfig, ctrlKey) {
       var _this5 = this;
 
       var currentSortConfig = this.getSortConfig(); // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
 
       var destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
       var sortPossible = this.areValidSortConfigs(destinationSortConfigs);
-      var allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
+      var allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible, ctrlKey);
 
       if (allowSort === false) {
         return;
@@ -45680,7 +45702,7 @@ function (_BasePlugin) {
   }, {
     key: "clearSort",
     value: function clearSort() {
-      this.sort([]);
+      this.sort([], false);
     }
     /**
      * Checks if the table is sorted (any column have to be sorted).
@@ -46124,7 +46146,7 @@ function (_BasePlugin) {
         var initialConfig = allSortSettings.initialConfig;
 
         if (Array.isArray(initialConfig) || (0, _object.isObject)(initialConfig)) {
-          this.sort(initialConfig);
+          this.sort(initialConfig, false);
         }
       } else {
         // Extra render for headers. Their width may change.
@@ -46376,7 +46398,16 @@ function (_BasePlugin) {
           this.hot.selectColumns(coords.col);
         }
 
-        this.sort(this.getColumnNextConfig(coords.col));
+        var columnNextConfig = this.getColumnNextConfig(coords.col);
+
+        if (!columnNextConfig) {
+          columnNextConfig = {
+            column: coords.col,
+            sortOrder: undefined
+          };
+        }
+
+        this.sort(columnNextConfig, event.ctrlKey);
       }
     }
     /**
@@ -46839,7 +46870,7 @@ function rootComparator(sortingOrders, columnMetas) {
       var nextValue = nextValues[column];
       var pluginSettings = columnMeta.columnSorting;
       var compareFunctionFactory = pluginSettings.compareFunctionFactory ? pluginSettings.compareFunctionFactory : (0, _sortService.getCompareFunctionFactory)(columnMeta.type);
-      var compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue); // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.
+      var compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue, rowIndexWithValues[0], nextRowIndexWithValues[0]); // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.
 
       return compareResult;
     }(0);
@@ -59070,6 +59101,12 @@ function (_BasePlugin) {
 
       var rowCount = this.hot.countRows();
       var mergeParent;
+      var cols = this.hot.countCols() - 1;
+
+      if (calc.startColumn === 0 && calc.endColumn === cols) {
+        return;
+      }
+
       (0, _number.rangeEach)(0, rowCount - 1, function (r) {
         mergeParent = _this8.mergedCellsCollection.get(r, calc.startColumn);
 
@@ -63631,6 +63668,10 @@ function onBeforeKeyDown(event) {
   var ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
 
   if (ctrlDown) {
+    if (!instance.undoRedo) {
+      return;
+    }
+
     if (event.keyCode === 89 || event.shiftKey && event.keyCode === 90) {
       // CTRL + Y or CTRL + SHIFT + Z
       instance.undoRedo.redo();
@@ -63646,7 +63687,7 @@ function onBeforeKeyDown(event) {
 function onAfterChange(changes, source) {
   var instance = this;
 
-  if (source === 'loadData') {
+  if (source === 'loadData' && instance.undoRedo) {
     return instance.undoRedo.clear();
   }
 }
