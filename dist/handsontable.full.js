@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.2.2-snapshot.8
- * Release date: 19/12/2018 (built at 18/08/2020 17:24:59)
+ * Version: 6.2.2-snapshot.9
+ * Release date: 19/12/2018 (built at 16/11/2020 16:37:53)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -35020,9 +35020,9 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "18/08/2020 17:24:59";
+Handsontable.buildDate = "16/11/2020 16:37:53";
 Handsontable.packageName = "@cggoss/handsontable";
-Handsontable.version = "6.2.2-snapshot.8";
+Handsontable.version = "6.2.2-snapshot.9";
 var baseVersion = "";
 
 if (baseVersion) {
@@ -46040,7 +46040,7 @@ DataMap.prototype.getLength = function () {
   var length = this.instance.countSourceRows();
 
   if (this.instance.hasHook('modifyRow')) {
-    var reValidate = this.skipCache;
+    var reValidate = false;
     this.interval.start();
 
     if (length !== this.latestSourceRowsCount) {

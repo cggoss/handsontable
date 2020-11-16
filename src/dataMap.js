@@ -715,7 +715,7 @@ DataMap.prototype.getLength = function() {
   let length = this.instance.countSourceRows();
 
   if (this.instance.hasHook('modifyRow')) {
-    let reValidate = this.skipCache;
+    let reValidate = false;
 
     this.interval.start();
     if (length !== this.latestSourceRowsCount) {
