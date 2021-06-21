@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.2.2-snapshot.9
- * Release date: 19/12/2018 (built at 16/11/2020 16:37:53)
+ * Version: 6.2.2-snapshot.11
+ * Release date: 19/12/2018 (built at 21/06/2021 11:30:12)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -35020,9 +35020,9 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "16/11/2020 16:37:53";
+Handsontable.buildDate = "21/06/2021 11:30:12";
 Handsontable.packageName = "@cggoss/handsontable";
-Handsontable.version = "6.2.2-snapshot.9";
+Handsontable.version = "6.2.2-snapshot.11";
 var baseVersion = "";
 
 if (baseVersion) {
@@ -50131,7 +50131,7 @@ function (_BasePlugin) {
       };
       var rowRange = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         from: 0,
-        to: this.hot.countRows() - 1
+        to: this.getMaxRows()
       };
       var force = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
       var columnsRange = typeof colRange === 'number' ? {
@@ -50163,6 +50163,17 @@ function (_BasePlugin) {
         this.ghostTable.clean();
       }
     }
+  }, {
+    key: "getMaxRows",
+    value: function getMaxRows() {
+      var maxRows = this.hot.getSettings().autoColumnSize.maxRows;
+
+      if (maxRows) {
+        return maxRows;
+      }
+
+      return this.hot.countRows() - 1;
+    }
     /**
      * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
      * To retrieve width for specyfied column use {@link AutoColumnSize#getColumnWidth} method.
@@ -50177,7 +50188,7 @@ function (_BasePlugin) {
 
       var rowRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         from: 0,
-        to: this.hot.countRows() - 1
+        to: this.getMaxRows()
       };
       var current = 0;
       var length = this.hot.countCols() - 1;

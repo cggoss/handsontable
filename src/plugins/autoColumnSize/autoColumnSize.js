@@ -198,7 +198,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Number|Object} rowRange Row index or an object with `from` and `to` indexes as a range.
    * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
+  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.getMaxRows() }, force = false) {
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
@@ -218,13 +218,21 @@ class AutoColumnSize extends BasePlugin {
     }
   }
 
+  getMaxRows() {
+    const maxRows = this.hot.getSettings().autoColumnSize.maxRows;
+    if (maxRows) {
+      return maxRows;
+    }
+    return this.hot.countRows() - 1;
+  }
+
   /**
    * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
    * To retrieve width for specyfied column use {@link AutoColumnSize#getColumnWidth} method.
    *
    * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
-  calculateAllColumnsWidth(rowRange = { from: 0, to: this.hot.countRows() - 1 }) {
+  calculateAllColumnsWidth(rowRange = { from: 0, to: this.getMaxRows() }) {
     let current = 0;
     const length = this.hot.countCols() - 1;
     let timer = null;
