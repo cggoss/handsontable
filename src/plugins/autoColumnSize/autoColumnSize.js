@@ -219,9 +219,9 @@ class AutoColumnSize extends BasePlugin {
   }
 
   getMaxRows() {
-    const maxRows = this.hot.getSettings().autoColumnSize.maxRows;
-    if (maxRows) {
-      return maxRows;
+    const autoColumnSize = this.hot.getSettings().autoColumnSize;
+    if (autoColumnSize && autoColumnSize.maxRows) {
+      return autoColumnSize.maxRows;
     }
     return this.hot.countRows() - 1;
   }

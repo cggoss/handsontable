@@ -23,8 +23,8 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Version: 6.2.2-snapshot.11
- * Release date: 19/12/2018 (built at 21/06/2021 11:30:12)
+ * Version: 6.2.2-snapshot.12
+ * Release date: 19/12/2018 (built at 22/06/2021 16:17:58)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -35020,9 +35020,9 @@ Handsontable.DefaultSettings = _defaultSettings.default;
 Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = "21/06/2021 11:30:12";
+Handsontable.buildDate = "22/06/2021 16:17:58";
 Handsontable.packageName = "@cggoss/handsontable";
-Handsontable.version = "6.2.2-snapshot.11";
+Handsontable.version = "6.2.2-snapshot.12";
 var baseVersion = "";
 
 if (baseVersion) {
@@ -50166,10 +50166,10 @@ function (_BasePlugin) {
   }, {
     key: "getMaxRows",
     value: function getMaxRows() {
-      var maxRows = this.hot.getSettings().autoColumnSize.maxRows;
+      var autoColumnSize = this.hot.getSettings().autoColumnSize;
 
-      if (maxRows) {
-        return maxRows;
+      if (autoColumnSize && autoColumnSize.maxRows) {
+        return autoColumnSize.maxRows;
       }
 
       return this.hot.countRows() - 1;
